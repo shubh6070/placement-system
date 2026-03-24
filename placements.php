@@ -1,8 +1,6 @@
 <?php
 session_start();
 include '../db.php';
-
-$student_id = $_SESSION['student_id'] ?? 1; // temp fallback
 ?>
 
 <!DOCTYPE html>
@@ -11,7 +9,7 @@ $student_id = $_SESSION['student_id'] ?? 1; // temp fallback
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Applications</title>
+<title>Placements</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -35,6 +33,12 @@ padding:20px;
 .sidebar ul li{padding:12px;border-radius:10px;}
 .sidebar ul li:hover{background:#6366f1;}
 
+.sidebar a{
+color:white;
+text-decoration:none;
+display:block;
+}
+
 .navbar-custom{
 margin-left:250px;
 background:white;
@@ -49,23 +53,34 @@ margin-left:250px;
 padding:20px;
 }
 
-.card-box{
+.job-card{
 background:white;
 padding:20px;
 border-radius:15px;
 margin-bottom:15px;
 box-shadow:0 2px 10px rgba(0,0,0,0.05);
+transition:0.3s;
 }
 
-.status{
+.job-card:hover{
+transform:translateY(-5px);
+}
+
+.apply-btn{
+background:#6366f1;
+color:white;
+border:none;
+padding:8px 20px;
+border-radius:8px;
+}
+
+.badge-job{
+background:#eef2ff;
+color:#6366f1;
 padding:5px 10px;
 border-radius:8px;
-font-size:12px;
+margin-right:5px;
 }
-
-.pending{background:#fef3c7;color:#92400e;}
-.selected{background:#dcfce7;color:#166534;}
-.rejected{background:#fee2e2;color:#991b1b;}
 </style>
 
 </head>
@@ -76,64 +91,57 @@ font-size:12px;
 <div class="sidebar">
 <h3>🎓 Student</h3>
 <ul>
-<li><a href="student-dashboard.php">Dashboard</a></li>
-<li><a href="internships.php">Internships</a></li>
-<li><a href="placements.php">Placements</a></li>
-<li><a href="applications.php">Applications</a></li>
-<li><a href="profile.php">Profile</a></li>
+<li><a href="student-dashboard.php"><i class="fa fa-home"></i> Dashboard</a></li>
+<li><a href="internships.php"><i class="fa fa-briefcase"></i> Internships</a></li>
+<li><a href="placements.php"><i class="fa fa-building"></i> Placements</a></li>
+<li><a href="applications.php"><i class="fa fa-file"></i> Applications</a></li>
+<li><a href="profile.php"><i class="fa fa-user"></i> Profile</a></li>
 </ul>
 </div>
 
 <!-- Navbar -->
 <div class="navbar-custom">
-<h5>My Applications</h5>
+<h5>Placement Opportunities</h5>
+
 <div>
-<i class="fa fa-bell"></i>
+<input placeholder="Search Jobs..." class="form-control d-inline" style="width:250px">
+<i class="fa fa-bell ms-3"></i>
 <i class="fa fa-user ms-3"></i>
 </div>
 </div>
 
 <div class="main">
-<h4>Applied Jobs</h4>
+
+<h4>Available Placements</h4>
 
 <?php
 $query = "
-SELECT applications.*, jobs.title, companies.name as company, companies.location
-FROM applications
-JOIN jobs ON applications.job_id = jobs.id
+SELECT jobs.*, companies.name as company
+FROM jobs
 JOIN companies ON jobs.company_id = companies.id
-WHERE applications.student_id = $student_id
-ORDER BY applications.applied_at DESC
+WHERE jobs.type='placement'
+ORDER BY jobs.id DESC
 ";
 
 $res = mysqli_query($conn,$query);
 
 while($row = mysqli_fetch_assoc($res)){
-
-$statusClass = strtolower($row['status']); // pending/selected/rejected
 ?>
 
-<div class="card-box">
+<div class="job-card">
 
-<div class="d-flex justify-content-between">
-
-<div>
 <h5><?php echo $row['title']; ?></h5>
-<p><?php echo $row['company']; ?> • <?php echo $row['location']; ?></p>
-<small>Applied on <?php echo date("d M Y", strtotime($row['applied_at'])); ?></small>
-</div>
+<p><?php echo $row['company']; ?></p>
 
-<div>
-<span class="status <?php echo $statusClass; ?>">
-<?php echo $row['status']; ?>
-</span>
-</div>
+<span class="badge-job">₹<?php echo $row['salary']; ?></span>
+<span class="badge-job"><?php echo $row['location']; ?></span>
+<span class="badge-job"><?php echo $row['duration']; ?></span>
 
-</div>
+<br><br>
 
-<hr>
-
-<button class="btn btn-outline-primary">View Details</button>
+<a href="apply.php?id=<?php echo $row['id']; ?>">
+<button class="apply-btn">Apply</button>
+</a>
 
 </div>
 
