@@ -1,5 +1,6 @@
 <?php
 session_start();
+include 'db.php';
 
 $msg = "";
 
@@ -8,13 +9,28 @@ if(isset($_POST['login'])){
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // Admin credentials
+    // 🔐 ADMIN LOGIN (HIDDEN)
     if($email == "admin@gmail.com" && $password == "123"){
         $_SESSION['admin'] = true;
-        header("Location: dashboard.php");
+        header("Location: admin/dashboard.php");
         exit();
+    }
+
+    // 👨‍🎓 STUDENT LOGIN
+    $res = mysqli_query($conn,"SELECT * FROM students WHERE email='$email'");
+
+    if($res && mysqli_num_rows($res) > 0){
+        $data = mysqli_fetch_assoc($res);
+
+        if($password == $data['password']){
+            $_SESSION['student_id'] = $data['id'];
+            header("Location: student/student-dashboard.php");
+            exit();
+        } else {
+            $msg = "Wrong Password!";
+        }
     } else {
-        $msg = "Invalid Admin Login!";
+        $msg = "User Not Found!";
     }
 }
 ?>
@@ -22,7 +38,7 @@ if(isset($_POST['login'])){
 <!DOCTYPE html>
 <html>
 <head>
-<title>Admin Login</title>
+<title>Login</title>
 
 <style>
 body{
@@ -44,11 +60,6 @@ border-radius:20px;
 backdrop-filter:blur(15px);
 width:350px;
 box-shadow:0 0 25px rgba(0,0,0,0.5);
-transition:0.3s;
-}
-
-.login-box:hover{
-transform:scale(1.02);
 }
 
 /* Inputs */
@@ -68,14 +79,9 @@ width:100%;
 padding:10px;
 border:none;
 border-radius:12px;
-background:linear-gradient(45deg,#f97316,#fb923c);
+background:linear-gradient(45deg,#6366f1,#3b82f6);
 color:white;
 font-weight:bold;
-transition:0.3s;
-}
-
-button:hover{
-box-shadow:0 0 15px #f97316;
 }
 
 /* Error */
@@ -89,7 +95,6 @@ text-align:center;
 
 a{
 color:#22c55e;
-text-decoration:none;
 }
 </style>
 
@@ -99,7 +104,7 @@ text-decoration:none;
 
 <div class="login-box">
 
-<h2 style="text-align:center;">👨‍💼 Admin Login</h2>
+<h2 style="text-align:center;">🎓 Student Login</h2>
 
 <?php if($msg){ ?>
 <div class="error"><?php echo $msg; ?></div>
@@ -107,16 +112,16 @@ text-decoration:none;
 
 <form method="POST">
 
-<input type="email" name="email" placeholder="Admin Email" required>
+<input type="email" name="email" placeholder="Enter Email" required>
 
-<input type="password" name="password" placeholder="Password" required>
+<input type="password" name="password" placeholder="Enter Password" required>
 
 <button name="login">Login</button>
 
 </form>
 
 <p style="text-align:center; margin-top:15px;">
-<a href="../index.php">← Back to Home</a>
+New student? <a href="register.php">Register</a>
 </p>
 
 </div>
